@@ -1044,6 +1044,10 @@ def full_report():
 # ==========================================
 
 if __name__ == "__main__":
-    init_db()  # Создаем таблицы при запуске
-    print("✅ База данных готова. Сервер запущен...")
-    app.run(debug=True, port=5000)
+    # Для локального запуска (у тебя на ПК)
+    # app.run(debug=True)
+    
+    # Для работы на сервере (Render/VPS)
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
