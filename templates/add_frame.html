@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить оправу</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>🕶 Новая оправа</h1>
+
+    <form method="POST" class="card">
+        <label>Название модели</label>
+        <input name="name" placeholder="Например: Ray-Ban Aviator" required>
+
+        <label>Цена закупки (сум)</label>
+        <input name="buy_price" type="number" placeholder="40000" required>
+
+        <label>Цена продажи (сум)</label>
+        <input name="sell_price" type="number" placeholder="85000" required>
+
+        <label>Количество (шт)</label>
+        <input name="stock" type="number" placeholder="10" required>
+
+        <button class="btn">💾 Сохранить на склад</button>
+    </form>
+
+    <a href="{{ url_for('seller_dashboard') }}" class="back-btn">⬅ Назад</a>
+</div>
+</body>
+</html>

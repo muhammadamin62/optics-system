@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель Управляющего</title>
+    <style>
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; margin-bottom: 20px; }
+
+        /* КАРТОЧКИ KPI (Главные цифры) */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: #1e293b; padding: 25px; border-radius: 12px; border-left: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .kpi-title { font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .kpi-value { font-size: 28px; font-weight: bold; }
+
+        /* Цвета карточек */
+        .card-cash { border-left-color: #f59e0b; } /* Касса - желтый */
+        .card-profit { border-left-color: #10b981; } /* Прибыль - зеленый */
+        .card-orders { border-left-color: #3b82f6; } /* Заказы - синий */
+        .card-alert { border-left-color: #ef4444; background: #450a0a; border: 1px solid #dc2626;} /* Ахтунг - красный */
+
+        /* СЕТКА НИЖНЕЙ ЧАСТИ (История и Финансы) */
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .panel { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155; }
+
+        /* ТАБЛИЦА ИСТОРИИ */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 12px; color: #94a3b8; border-bottom: 1px solid #334155; font-size: 14px; }
+        td { padding: 12px; border-bottom: 1px solid #2a3441; font-size: 14px; }
+        .role-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #334155; }
+        .role-master { color: #f472b6; }
+        .role-seller { color: #38bdf8; }
+
+        /* ФОРМА ДЕНЕГ */
+        input, select, button { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        button { background: #3b82f6; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #2563eb; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="/manager/sales_report" class="btn">📈 Посмотреть детальный отчет</a>
+    <h2>👁️ Управление Оптикой</h2>
+    <div style="display: flex; gap: 10px;">
+        <a href="/seller/frames" style="color: #94a3b8; text-decoration: none; padding: 10px 15px; border: 1px solid #334155; border-radius: 8px;">Перейти к складу</a>
+        <a href="/logout" style="color: #ef4444; text-decoration: none; padding: 10px 15px; border: 1px solid #ef4444; border-radius: 8px;">Выход</a>
+    </div>
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi-card card-cash">
+        <div class="kpi-title">💵 В сейфе (Наличка)</div>
+        <div class="kpi-value" style="color: #fcd34d;">{{ "{:,}".format(cash_on_hand) }}</div>
+    </div>
+    <div class="kpi-card card-profit">
+        <div class="kpi-title">📈 Чистая прибыль</div>
+        <div class="kpi-value" style="color: #34d399;">{{ "{:,}".format(net_profit) }}</div>
+    </div>
+    <div class="kpi-card card-orders">
+        <div class="kpi-title">🛠️ Заказы в работе</div>
+        <div class="kpi-value">{{ active_orders_count }} шт.</div>
+    </div>
+    <div class="kpi-card card-alert">
+        <div class="kpi-title" style="color: #fca5a5;">⚠️ Критические остатки</div>
+        <div class="kpi-value" style="color: #ef4444;">{{ low_stock|length }} позиций</div>
+        <a href="#low-stock" style="font-size: 12px; color: #fca5a5;">Смотреть список ↓</a>
+    </div>
+</div>
+
+<div class="main-grid">
+
+    <div class="panel">
+        <h3 style="margin-top: 0; color: #e2e8f0;">🕵️‍♂️ Журнал активности сотрудников</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Время</th>
+                    <th>Сотрудник</th>
+                    <th>Действие</th>
+                    <th>Подробности</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="color: #94a3b8; font-size: 12px;">{{ log.date }}</td>
+                    <td><span class="role-badge {% if log.user_role == 'Мастер' %}role-master{% else %}role-seller{% endif %}">{{ log.user_role }}</span></td>
+                    <td style="font-weight: bold;">{{ log.action }}</td>
+                    <td style="color: #cbd5e1;">{{ log.details }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" style="text-align: center; color: #64748b;">Действий пока нет</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="/manager/full_history" style="display: block; text-align: center; margin-top: 15px; color: #3b82f6; text-decoration: none; font-size: 14px;">Посмотреть всю историю →</a>
+    </div>
+
+    <div class="panel">
+        <h3 style="margin-top: 0; color: #e2e8f0;">💸 Управление кассой</h3>
+        <form action="/manager/finance/action" method="POST">
+            <select name="action_type" required>
+                <option value="расход">🔴 Изъять из кассы (Расход / Закуп)</option>
+                <option value="вложение">🔵 Положить в кассу (Личные вложения)</option>
+            </select>
+            <input type="text" name="description" placeholder="На что ушли деньги? (Напр: Аренда)" required>
+            <input type="number" name="amount" placeholder="Сумма (сум)" required>
+            <button type="submit">Провести операцию</button>
+        </form>
+
+        <div id="low-stock" style="margin-top: 30px; border-top: 1px solid #334155; padding-top: 20px;">
+            <h4 style="margin-top: 0; color: #fca5a5;">Заканчиваются на складе:</h4>
+            {% for item in low_stock %}
+                <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+                    <span style="color: #cbd5e1;">{{ item.name }}</span>
+                    <span style="color: #ef4444; font-weight: bold;">{{ item.stock }} шт.</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

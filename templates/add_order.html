@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Новый заказ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Стиль для того, чтобы текст при вводе был ВСЕГДА БЕЛЫЙ */
+        input, select {
+            background-color: #2d2d2d !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            border: 1px solid #444;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Делаем поля поиска длинными и удобными */
+        .smart-input {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #4ade80;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .card {
+            background: #1f1f1f;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="{{ url_for('seller_dashboard') }}" class="back-btn">⬅ Назад</a>
+    <h1>🛒 Оформление заказа</h1>
+
+    <form method="POST" class="card">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div>
+                <label>ФИО Клиента:</label>
+                <input type="text" name="customer_name" placeholder="Имя" required autocomplete="off">
+            </div>
+            <div>
+                <label>Номер телефона:</label>
+                <input type="text" name="customer_phone" placeholder="+998" required autocomplete="off">
+            </div>
+        </div>
+
+        <label>Выберите оправу (длинное поле поиска):</label>
+        <input type="text" name="frame_name" id="frameInput" list="frame_list"
+               class="smart-input" placeholder="Начните писать название оправы..."
+               required autocomplete="off" onchange="updatePrice()">
+
+        <datalist id="frame_list">
+            {% for frame in frames %}
+                <option value="{{ frame.name }}" data-price="{{ frame.sell_price }}">
+                    Остаток: {{ frame.stock }} шт. | Цена: {{ frame.sell_price }} сум
+                </option>
+            {% endfor %}
+        </datalist>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+            <div>
+                <label>Линза Правый (OD):</label>
+                <input type="text" name="lens_name_right" list="lens_stock"
+                       class="smart-input lens-in" placeholder="Напр: -5.00 B/B"
+                       required autocomplete="off" onchange="updatePrice()">
+            </div>
+            <div>
+                <label>Линза Левый (OS):</label>
+                <input type="text" name="lens_name_left" list="lens_stock"
+                       class="smart-input lens-in" placeholder="Напр: -5.00 B/B"
+                       required autocomplete="off" onchange="updatePrice()">
+            </div>
+        </div>
+
+        <datalist id="lens_stock">
+            {% for lens in lenses %}
+                {# Используем те колонки, которые точно есть: vision и lens_type #}
+                <option value="{{ lens.vision }} {{ lens.lens_type }}" data-price="{{ lens.price / 2 }}">
+                    Остаток: {{ lens.stock }} шт.
+                </option>
+            {% endfor %}
+        </datalist>
+
+        <div style="margin-top: 15px;">
+            <label>PD (РЦ):</label>
+            <input type="text" name="pd" placeholder="Например: 62-64" autocomplete="off">
+        </div>
+
+        <div class="price-card" style="background: #222; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #4ade80;">
+            <h2 style="margin:0;">Итого: <span id="totalDisplay">0</span> сум</h2>
+        </div>
+
+        <button type="submit" class="btn" style="background: #4ade80; color: #000; width: 100%; margin-top: 15px; font-weight: bold; font-size: 18px;">
+            ✅ Создать заказ
+        </button>
+    </form>
+</div>
+
+<script>
+function updatePrice() {
+    // 1. Считаем цену оправы
+    const frameInput = document.getElementById("frameInput");
+    const frameDatalist = document.getElementById("frame_list");
+    let framePrice = 0;
+
+    // Ищем выбранную цену в datalist
+    const frameOption = Array.from(frameDatalist.options).find(opt => opt.value === frameInput.value);
+    if (frameOption) {
+        framePrice = parseInt(frameOption.getAttribute("data-price")) || 0;
+    }
+
+    // 2. Считаем цену линз
+    let lensPrice = 0;
+    const lensDatalist = document.getElementById("lens_stock");
+    const lensInputs = document.querySelectorAll(".lens-in");
+
+    lensInputs.forEach(input => {
+        const lensOption = Array.from(lensDatalist.options).find(opt => opt.value === input.value);
+        if (lensOption) {
+            lensPrice += parseInt(lensOption.getAttribute("data-price")) || 0;
+        }
+    });
+
+    // 3. Выводим результат
+    document.getElementById("totalDisplay").innerText = (framePrice + lensPrice).toLocaleString();
+}
+</script>
+</body>
+</html>

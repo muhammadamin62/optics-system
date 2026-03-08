@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Отчет по продажам</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .report-table { width: 100%; border-collapse: collapse; background: #162840; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .report-table th { background: #1e293b; color: #351818; padding: 15px; text-align: left; }
+        .report-table td { padding: 12px 15px; border-bottom: 1px solid #40628e; font-size: 14px; }
+        .profit-pos { color: #10b981; font-weight: bold; }
+        .cost-neg { color: #ef4444; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .summary-card { background: #26343e; padding: 20px; border-radius: 12px; border-left: 5px solid #3b82f6; }
+    </style>
+</head>
+<body>
+<div class="container" style="max-width: 1200px;">
+    <h1>📊 Детальный отчет по продажам</h1>
+<div class="filter-group" style="margin: 20px 0; display: flex; gap: 10px;">
+    <a href="?period=day" class="filter-btn {{ 'active' if current_period == 'day' }}">Сегодня</a>
+    <a href="?period=week" class="filter-btn {{ 'active' if current_period == 'week' }}">Неделя</a>
+    <a href="?period=month" class="filter-btn {{ 'active' if current_period == 'month' }}">Месяц</a>
+    <a href="?period=year" class="filter-btn {{ 'active' if current_period == 'year' }}">Год</a>
+    <a href="?period=all" class="filter-btn {{ 'active' if current_period == 'all' }}">Все время</a>
+</div>
+
+<style>
+    .filter-btn {
+        padding: 8px 16px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #475569;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .filter-btn:hover { background: #e2e8f0; }
+    .filter-btn.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #2563eb;
+    }
+
+</style>
+    <a href="/manager/dashboard" style="text-decoration: none; color: #3b82f6;">← Вернуться в панель</a>
+<div class="report-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; color: #0e0a0a;">
+    <div class="card" style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+        <h3 style="margin-top: 0; color: #3b82f6;">🕶️ Склад Оправ</h3>
+        <p style="color: #94a3b8;">Всего в наличии: <b style="color: #834444;">{{ total_frames }} шт.</b></p>
+        <table width="100%" style="font-size: 14px; border-collapse: collapse;">
+            {% for f in frames %}
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px 0;">{{ f.name }}</td>
+                <td align="right"><b>{{ f.stock }}</b></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="card" style="background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+        <h3 style="margin-top: 0; color: #10b981;">👁️ Склад Линз</h3>
+        <p style="color: #94a3b8;">Всего в наличии: <b style="color: #553737;">{{ total_lenses }} шт.</b></p>
+        <table width="100%" style="font-size: 14px; border-collapse: collapse;">
+            {% for l in lenses %}
+            <tr style="border-bottom: 1px solid #334155;">
+                <td style="padding: 5px 0;">{{ l.vision }} ({{ l.lens_type }})</td>
+                <td align="right"><b>{{ l.stock }}</b></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<div class="profit-banner" style="background: #059669; color: white; padding: 20px; margin: 20px 0; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);">
+    <span style="font-size: 14px; opacity: 0.9; text-transform: uppercase;">Чистая прибыль за выбранный период:</span>
+    <h2 style="margin: 5px 0; font-size: 32px;">{{ "{:,}".format(net_profit) }} сум</h2>
+</div>
+    <div class="summary-grid" style="margin-top: 25px;">
+        <div class="summary-card">
+            <span>Общая выручка</span>
+            <h3>{{ "{:,}".format(total_revenue) }} сум</h3>
+        </div>
+        <div class="summary-card" style="border-left-color: #ef4444;">
+            <span>Закуп оправ (Расход)</span>
+            <h3>- {{ "{:,}".format(total_costs) }} сум</h3>
+        </div>
+        <div class="summary-card" style="border-left-color: #f59e0b;">
+            <span>ЗП Мастера</span>
+            <h3>- {{ "{:,}".format(total_master_fees) }} сум</h3>
+        </div>
+        <div class="summary-card" style="border-left-color: #10b981;">
+            <span>Чистая прибыль</span>
+            <h3>{{ "{:,}".format(total_net) }} сум</h3>
+        </div>
+    </div>
+
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Клиент</th>
+                <th>Товар (Оправа)</th>
+                <th>Закуп (Расход)</th>
+                <th>Продажа (Приход)</th>
+                <th>ЗП Мастера</th>
+                <th>Профит</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for s in sales %}
+<tr>
+    <td>{{ s.date }}</td>
+    <td><b>{{ s.customer_name }}</b></td>
+    <td>
+        {{ s.frame_name }} <br>
+        <small style="color: #64748b;">Закуп: {{ "{:,}".format(s.frame_cost) }}</small>
+    </td>
+    <td class="cost-neg">- {{ "{:,}".format(s.frame_cost + 20000) }}</td> <td style="color: #3b82f6;">+ {{ "{:,}".format(s.sell_price) }}</td>
+    <td class="profit-pos">
+        {{ "{:,}".format(s.sell_price - s.frame_cost - 20000) }} сум
+    </td>
+</tr>
+{% endfor %}
+            {% for s in sales %}
+            <tr>
+                <td>{{ s.date }}</td>
+                <td><b>{{ s.customer_name }}</b></td>
+                <td>{{ s.frame_name }}</td>
+                <td class="cost-neg">- {{ "{:,}".format(s.frame_cost) }}</td>
+                <td style="color: #3b82f6;">+ {{ "{:,}".format(s.sell_price) }}</td>
+                <td class="cost-neg">- 20,000</td>
+                <td class="profit-pos">{{ "{:,}".format(s.net_profit) }} сум</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

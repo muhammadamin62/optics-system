@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему | Optical</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Анимация появления всей карточки */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Анимация свечения фона */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            background: linear-gradient(-45deg, #121212, #1a1a1a, #0f1711, #121212);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .login-card {
+            background: rgba(31, 31, 31, 0.95);
+            width: 100%;
+            max-width: 380px;
+            padding: 50px 40px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            backdrop-filter: blur(10px); /* Эффект стекла */
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .logo-area h1 {
+            color: #4ade80;
+            margin: 0;
+            font-size: 32px;
+            letter-spacing: 4px;
+            font-weight: 800;
+            text-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+        }
+
+        .logo-area p {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            color: #888;
+            margin-bottom: 10px;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        /* Твой стиль полей: Белый текст + анимация фокуса */
+        .login-input {
+            width: 100%;
+            padding: 16px;
+            background: #262626 !important;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: white !important;
+            font-size: 16px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s ease;
+            -webkit-text-fill-color: white !important;
+        }
+
+        .login-input:focus {
+            border-color: #4ade80;
+            background: #2d2d2d !important;
+            box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.1);
+            transform: scale(1.02);
+        }
+
+        /* Элегантная кнопка с анимацией */
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            background: #4ade80;
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-top: 15px;
+        }
+
+        .login-btn:hover {
+            background: #5eff99;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(74, 222, 128, 0.2);
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Сообщение об ошибке */
+        .error-msg {
+            color: #ff5f5f;
+            font-size: 13px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255, 95, 95, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 95, 95, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="logo-area">
+        <h1>OPTICAL</h1>
+        <p>Удачи</p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="error-msg">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <div class="form-group">
+            <label>Имя пользователя</label>
+            <input type="text" name="username" class="login-input" placeholder="admin" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" name="password" class="login-input" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="login-btn">ВОЙТИ</button>
+    </form>
+</div>
+
+</body>
+</html>

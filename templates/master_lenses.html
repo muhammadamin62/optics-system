@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Склад линз</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .card { background: #1f1f1f; padding: 20px; border-radius: 12px; border: 1px solid #333; }
+
+        /* Стили таблицы */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { padding: 12px; text-align: left; border-bottom: 2px solid #333; color: #888; }
+        td { padding: 12px; border-bottom: 1px solid #2a2a2a; color: white; }
+
+        /* Поле ввода и кнопка */
+        .stock-input {
+            width: 70px;
+            padding: 8px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #4ade80;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .save-btn {
+            padding: 8px 15px;
+            background: #10b981;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .save-btn:hover { background: #059669; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/master" class="back-btn" style="text-decoration: none; color: #888;">⬅ Назад</a>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
+        <h1>📦 Склад линз</h1>
+        <a href="{{ url_for('add_lens') }}" class="btn" style="background: #4ade80; color: #000; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">+ Добавить линзы</a>
+    </div>
+
+    <form method="GET" style="margin-bottom: 20px; display: flex; gap: 10px;">
+        <input type="text" name="search" placeholder="Поиск по диоптрии..." value="{{ request.args.get('search', '') }}"
+               style="flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #1f1f1f; color: white;">
+        <button type="submit" class="btn" style="background: #2196f3; color: white; padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer;">Найти</button>
+    </form>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Диоптрия</th>
+                    <th>Тип</th>
+                    <th>Цена (сум)</th>
+                    <th>Количество</th>
+                    <th style="text-align: right;">Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for lens in lenses %}
+                <tr id="row-{{ lens.id }}">
+                    <td style="font-weight: bold; color: #4ade80;">{{ lens.vision }}</td>
+                    <td>{{ lens.lens_type }}</td>
+                    <td>{{ lens.price | format_price }}</td>
+                    <td>
+                        <input type="number" id="input-{{ lens.id }}" value="{{ lens.stock }}" class="stock-input">
+                    </td>
+                    <td style="text-align: right;">
+                        <button onclick="saveLens('{{ lens.id }}')" id="btn-{{ lens.id }}" class="save-btn">
+                            Сохранить
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function saveLens(lensId) {
+    const stockValue = document.getElementById('input-' + lensId).value;
+    const btn = document.getElementById('btn-' + lensId);
+
+    // Визуальный эффект загрузки
+    const originalText = btn.innerText;
+    btn.innerText = "⏳";
+    btn.style.opacity = "0.7";
+
+    // Отправляем данные (AJAX)
+    fetch('/master/lens/edit/' + lensId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'stock=' + encodeURIComponent(stockValue)
+    })
+    .then(response => {
+        if (response.ok) {
+            btn.innerText = "✅ OK";
+            btn.style.background = "#059669";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "#10b981";
+                btn.style.opacity = "1";
+            }, 2000);
+        } else {
+            alert("Ошибка сервера!");
+            btn.innerText = "❌";
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("Ошибка соединения!");
+    });
+}
+</script>
+
+</body>
+</html>
